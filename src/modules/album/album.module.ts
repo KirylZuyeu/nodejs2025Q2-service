@@ -1,10 +1,16 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './album.controller';
-import { AppService } from './app.service';
+import { forwardRef, Module } from '@nestjs/common';
+import { AlbumService } from './album.service';
+import { AlbumController } from './album.controller';
+import { TrackModule } from '@track/track.module';
+import { FavoritesModule } from '@favorites/favorites.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    forwardRef(() => TrackModule),
+    forwardRef(() => FavoritesModule)
+  ],
+  controllers: [AlbumController],
+  providers: [AlbumService],
+  exports: [AlbumService],
 })
-export class AppModule {}
+export class AlbumsModule {}
