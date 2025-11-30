@@ -3,12 +3,14 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  BadRequestException
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { IAlbum } from '../../common/interfaces';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { TrackService } from '../track/track.service';
 import { FavoritesService } from '../favorites/favorites.service';
+import { validateUuid } from '../../utils/uuid-validation';
 
 @Injectable()
 export class AlbumService {
@@ -38,6 +40,10 @@ export class AlbumService {
   }
 
   findOne(id: string): IAlbum {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
     const album = this.albums.find((album) => album.id === id);
     if (!album) {
       throw new NotFoundException('Album not found');
@@ -46,6 +52,10 @@ export class AlbumService {
   }
 
   update(id: string, updateAlbumDto: CreateAlbumDto): IAlbum {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
     const album = this.albums.find((album) => album.id === id);
     if (!album) {
       throw new NotFoundException('Album not found');
@@ -59,6 +69,10 @@ export class AlbumService {
   }
 
   remove(id: string): void {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
     const index = this.albums.findIndex((album) => album.id === id);
     if (index === -1) {
       throw new NotFoundException('Album not found');

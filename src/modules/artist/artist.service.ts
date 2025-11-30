@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  BadRequestException
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { IArtist } from '../../common/interfaces';
@@ -10,6 +11,7 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { AlbumService } from '../album/album.service';
 import { TrackService } from '../track/track.service';
 import { FavoritesService } from '../favorites/favorites.service';
+import { validateUuid } from '../../utils/uuid-validation';
 
 @Injectable()
 export class ArtistService {
@@ -40,6 +42,10 @@ export class ArtistService {
   }
 
   findOne(id: string): IArtist {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Artist Id is invalid (not uuid)');
+    }
+
     const artist = this.artists.find((artist) => artist.id === id);
     if (!artist) {
       throw new NotFoundException('Artist not found');
@@ -48,6 +54,10 @@ export class ArtistService {
   }
 
   update(id: string, updateArtistDto: CreateArtistDto): IArtist {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Artist Id is invalid (not uuid)');
+    }
+
     const artist = this.artists.find((artist) => artist.id === id);
     if (!artist) {
       throw new NotFoundException('Artist not found');
@@ -60,6 +70,11 @@ export class ArtistService {
   }
 
   remove(id: string): void {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Artist Id is invalid (not uuid)');
+    }
+
+
     const index = this.artists.findIndex((artist) => artist.id === id);
     if (index === -1) {
       throw new NotFoundException('Artist not found');
