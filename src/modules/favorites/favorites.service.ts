@@ -4,11 +4,13 @@ import {
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
+  BadRequestException
 } from '@nestjs/common';
 import { IFavorites, IFavoritesResponse } from '../../common/interfaces';
 import { ArtistService } from '../artist/artist.service';
 import { AlbumService } from '../album/album.service';
 import { TrackService } from '../track/track.service';
+import { validateUuid } from '../../utils/uuid-validation';
 
 @Injectable()
 export class FavoritesService {
@@ -36,6 +38,10 @@ export class FavoritesService {
   }
 
   addArtist(id: string): string {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Artist Id is invalid (not uuid)');
+    }
+
     if (!this.artistService.exists(id)) {
       throw new UnprocessableEntityException('Artist not found');
     }
@@ -48,6 +54,10 @@ export class FavoritesService {
   }
 
   deleteArtist(id: string): void {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Artist Id is invalid (not uuid)');
+    }
+
     const index = this.favorites.artists.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Artist is not in favorites');
@@ -56,6 +66,10 @@ export class FavoritesService {
   }
 
   addAlbum(id: string): string {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
     if (!this.albumService.exists(id)) {
       throw new UnprocessableEntityException('Album not found');
     }
@@ -68,6 +82,10 @@ export class FavoritesService {
   }
 
   deleteAlbum(id: string): void {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
     const index = this.favorites.albums.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Album is not in favorites');
@@ -76,6 +94,10 @@ export class FavoritesService {
   }
 
   addTrack(id: string): string {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Track Id is invalid (not uuid)');
+    }
+
     if (!this.trackService.exists(id)) {
       throw new UnprocessableEntityException('Track not found');
     }
@@ -88,6 +110,10 @@ export class FavoritesService {
   }
 
   deleteTrack(id: string): void {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Track Id is invalid (not uuid)');
+    }
+
     const index = this.favorites.tracks.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Track is not in favorites');

@@ -42,7 +42,6 @@ export class UserService {
     if (!validateUuid(id)) {
       throw new BadRequestException('User Id is invalid (not uuid)');
     }
-
     const user = this.users.find((user) => user.id === id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -53,6 +52,9 @@ export class UserService {
   }
 
   updateUser(id: string, updatePasswordDto: UpdatePasswordDto): IUserResponse {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('User Id is invalid (not uuid)');
+    }
     const user = this.users.find((user) => user.id === id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -71,6 +73,10 @@ export class UserService {
   }
 
   deleteUser(id: string): void {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('User Id is invalid (not uuid)');
+    }
+
     const index = this.users.findIndex((user) => user.id === id);
     if (index === -1) {
       throw new NotFoundException('User not found');

@@ -3,11 +3,13 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  BadRequestException
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { ITrack } from '../../common/interfaces';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { FavoritesService } from '../favorites/favorites.service';
+import { validateUuid } from '../../utils/uuid-validation';
 
 @Injectable()
 export class TrackService {
@@ -36,6 +38,10 @@ export class TrackService {
   }
 
   getTrackById(id: string): ITrack {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Track Id is invalid (not uuid)');
+    }
+
     const track = this.tracks.find((track) => track.id === id);
     if (!track) {
       throw new NotFoundException('Track not found');
@@ -44,6 +50,10 @@ export class TrackService {
   }
 
   updateTrack(id: string, updateTrackDto: CreateTrackDto): ITrack {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Track Id is invalid (not uuid)');
+    }
+
     const track = this.tracks.find((track) => track.id === id);
     if (!track) {
       throw new NotFoundException('Track not found');
@@ -58,6 +68,10 @@ export class TrackService {
   }
 
   deleteTrack(id: string): void {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Track Id is invalid (not uuid)');
+    }
+
     const index = this.tracks.findIndex((track) => track.id === id);
     if (index === -1) {
       throw new NotFoundException('Track not found');
