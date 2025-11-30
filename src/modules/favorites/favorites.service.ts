@@ -29,13 +29,17 @@ export class FavoritesService {
 
   getAll(): IFavoritesResponse {
     return {
-      artists: [],
-      albums: [],
+      artists: this.artistService.getArtistsByIds(this.favorites.artists),
+      albums: this.albumService.getAlbumsByIds(this.favorites.albums),
       tracks: this.trackService.getTracksByIds(this.favorites.tracks),
     };
   }
 
   addArtist(id: string): string {
+    if (!this.artistService.exists(id)) {
+      throw new UnprocessableEntityException('Artist not found');
+    }
+
     if (!this.favorites.artists.includes(id)) {
       this.favorites.artists.push(id);
     }
@@ -52,6 +56,10 @@ export class FavoritesService {
   }
 
   addAlbum(id: string): string {
+    if (!this.albumService.exists(id)) {
+      throw new UnprocessableEntityException('Album not found');
+    }
+
     if (!this.favorites.albums.includes(id)) {
       this.favorites.albums.push(id);
     }
