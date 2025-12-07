@@ -64,7 +64,6 @@ export class AlbumService {
 
     try {
       await this.prisma.album.delete({ where: { id } });
-      // Prisma сама занулит ссылки в Track и очистит Favorites благодаря onDelete: SetNull в схеме
     } catch {
       throw new NotFoundException('Album not found');
     }

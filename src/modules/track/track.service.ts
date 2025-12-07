@@ -66,7 +66,6 @@ export class TrackService {
 
     try {
       await this.prisma.track.delete({ where: { id } });
-      // БД сама очистит ссылки в Favorites благодаря onDelete: SetNull/Cascade
     } catch {
       throw new NotFoundException('Track not found');
     }
