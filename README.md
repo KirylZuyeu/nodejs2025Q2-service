@@ -1,10 +1,14 @@
-Принцип проверки приложения остался прежний за одним исключением - нам нужно поднять докер образы
-npx prisma migrate reset --force
+# Home Library Service - Part 2 (Docker)
 
-и после запуска каждого теста очищать базу данных
-npx prisma migrate reset --force
+Common Score: 360 / 360
 
-# Home Library Service
+1. Для проверки выполнения данного таска вам необходимо:
+- склонировать репозиторий https://github.com/KirylZuyeu/nodejs2025Q2-service
+- перейти на ветку docker
+- установить зависимости npm install
+- выполнить комманду npm run docker:build
+- проверить что докер контейнер запущен - docker ps
+- открыть дополнительный терминал и запустить команду npm run test
 
 ## Prerequisites
 

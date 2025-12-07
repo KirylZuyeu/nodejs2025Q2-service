@@ -27,6 +27,9 @@
     "docker:start": "docker compose up --watch",
     "docker:stop": "docker compose down",
     "docker:restart": "docker compose up --force-recreate --build",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:test:reset": "prisma migrate reset --force",
     "prisma:start": "prisma generate && prisma migrate deploy && nest start"
   },
   "dependencies": {
