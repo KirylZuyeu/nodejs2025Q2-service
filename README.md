@@ -1,4 +1,14 @@
-# Home Library Service
+# Home Library Service - Part 2 (Docker)
+
+Common Score: 360 / 360
+
+1. Для проверки выполнения данного таска вам необходимо:
+- склонировать репозиторий https://github.com/KirylZuyeu/nodejs2025Q2-service
+- перейти на ветку docker
+- установить зависимости npm install
+- выполнить комманду npm run docker:build
+- проверить что докер контейнер запущен - docker ps
+- открыть дополнительный терминал и запустить команду npm run test
 
 ## Prerequisites
 
