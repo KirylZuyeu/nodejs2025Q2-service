@@ -12,3 +12,5 @@ doc
 test
 *.spec.ts
 logs
+
+.env
