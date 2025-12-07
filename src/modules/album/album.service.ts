@@ -1,102 +1,72 @@
 import {
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
   BadRequestException
 } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { PrismaService } from '../../prisma/prisma.service';
 import { IAlbum } from '../../common/interfaces';
 import { CreateAlbumDto } from './dto/create-album.dto';
-import { TrackService } from '../track/track.service';
-import { FavoritesService } from '../favorites/favorites.service';
 import { validateUuid } from '../../utils/uuid-validation';
 
 @Injectable()
 export class AlbumService {
-  private albums: IAlbum[] = [];
+  constructor(private prisma: PrismaService) {}
 
-  constructor(
-    @Inject(forwardRef(() => TrackService))
-    private readonly tracksService: TrackService,
-    @Inject(forwardRef(() => FavoritesService))
-    private readonly favoritesService: FavoritesService,
-  ) {}
-
-  create(createAlbumDto: CreateAlbumDto): IAlbum {
-    const album: IAlbum = {
-      id: randomUUID(),
-      name: createAlbumDto.name,
-      year: createAlbumDto.year,
-      artistId: createAlbumDto.artistId || null,
-    };
-
-    this.albums.push(album);
-    return album;
-  }
-
-  findAll(): IAlbum[] {
-    return this.albums;
-  }
-
-  findOne(id: string): IAlbum {
-    if (!validateUuid(id)) {
-      throw new BadRequestException('Album Id is invalid (not uuid)');
-    }
-
-    const album = this.albums.find((album) => album.id === id);
-    if (!album) {
-      throw new NotFoundException('Album not found');
-    }
-    return album;
-  }
-
-  update(id: string, updateAlbumDto: CreateAlbumDto): IAlbum {
-    if (!validateUuid(id)) {
-      throw new BadRequestException('Album Id is invalid (not uuid)');
-    }
-
-    const album = this.albums.find((album) => album.id === id);
-    if (!album) {
-      throw new NotFoundException('Album not found');
-    }
-
-    album.name = updateAlbumDto.name;
-    album.year = updateAlbumDto.year;
-    album.artistId = updateAlbumDto.artistId || null;
-
-    return album;
-  }
-
-  remove(id: string): void {
-    if (!validateUuid(id)) {
-      throw new BadRequestException('Album Id is invalid (not uuid)');
-    }
-
-    const index = this.albums.findIndex((album) => album.id === id);
-    if (index === -1) {
-      throw new NotFoundException('Album not found');
-    }
-
-    this.tracksService.removeAlbumReferences(id);
-    this.favoritesService.removeAlbumFromFavorites(id);
-
-    this.albums.splice(index, 1);
-  }
-
-  removeArtistReferences(artistId: string): void {
-    this.albums.forEach((album) => {
-      if (album.artistId === artistId) {
-        album.artistId = null;
-      }
+  async create(createAlbumDto: CreateAlbumDto): Promise<IAlbum> {
+    return await this.prisma.album.create({
+      data: {
+        name: createAlbumDto.name,
+        year: createAlbumDto.year,
+        artistId: createAlbumDto.artistId || null,
+      },
     });
   }
 
-  exists(id: string): boolean {
-    return this.albums.some((album) => album.id === id);
+  async findAll(): Promise<IAlbum[]> {
+    return await this.prisma.album.findMany();
   }
 
-  getAlbumsByIds(ids: string[]): IAlbum[] {
-    return this.albums.filter((album) => ids.includes(album.id));
+  async findOne(id: string): Promise<IAlbum> {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
+    const album = await this.prisma.album.findUnique({ where: { id } });
+    if (!album) {
+      throw new NotFoundException('Album not found');
+    }
+    return album;
+  }
+
+  async update(id: string, updateAlbumDto: CreateAlbumDto): Promise<IAlbum> {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
+    try {
+      return await this.prisma.album.update({
+        where: { id },
+        data: {
+          name: updateAlbumDto.name,
+          year: updateAlbumDto.year,
+          artistId: updateAlbumDto.artistId || null,
+        },
+      });
+    } catch {
+      throw new NotFoundException('Album not found');
+    }
+  }
+
+  async remove(id: string): Promise<void> {
+    if (!validateUuid(id)) {
+      throw new BadRequestException('Album Id is invalid (not uuid)');
+    }
+
+    try {
+      await this.prisma.album.delete({ where: { id } });
+      // Prisma сама занулит ссылки в Track и очистит Favorites благодаря onDelete: SetNull в схеме
+    } catch {
+      throw new NotFoundException('Album not found');
+    }
   }
 }

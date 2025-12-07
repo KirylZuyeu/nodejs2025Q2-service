@@ -1,108 +1,74 @@
 import {
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
   BadRequestException
 } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../../prisma/prisma.service';
 import { ITrack } from '../../common/interfaces';
 import { CreateTrackDto } from './dto/create-track.dto';
-import { FavoritesService } from '../favorites/favorites.service';
 import { validateUuid } from '../../utils/uuid-validation';
 
 @Injectable()
 export class TrackService {
-  private tracks: ITrack[] = [];
+  constructor(private prisma: PrismaService) {}
 
-  constructor(
-    @Inject(forwardRef(() => FavoritesService))
-    private readonly favoritesService: FavoritesService,
-  ) {}
-
-  createTrack(createTrackDto: CreateTrackDto): ITrack {
-    const track: ITrack = {
-      id: uuidv4(),
-      name: createTrackDto.name,
-      artistId: createTrackDto.artistId || null,
-      albumId: createTrackDto.albumId || null,
-      duration: createTrackDto.duration,
-    };
-
-    this.tracks.push(track);
-    return track;
+  async createTrack(createTrackDto: CreateTrackDto): Promise<ITrack> {
+    return await this.prisma.track.create({
+      data: {
+        name: createTrackDto.name,
+        artistId: createTrackDto.artistId || null,
+        albumId: createTrackDto.albumId || null,
+        duration: createTrackDto.duration,
+      },
+    });
   }
 
-  getAllTracks(): ITrack[] {
-    return this.tracks;
+  async getAllTracks(): Promise<ITrack[]> {
+    return await this.prisma.track.findMany();
   }
 
-  getTrackById(id: string): ITrack {
+  async getTrackById(id: string): Promise<ITrack> {
     if (!validateUuid(id)) {
       throw new BadRequestException('Track Id is invalid (not uuid)');
     }
 
-    const track = this.tracks.find((track) => track.id === id);
+    const track = await this.prisma.track.findUnique({ where: { id } });
     if (!track) {
       throw new NotFoundException('Track not found');
     }
     return track;
   }
 
-  updateTrack(id: string, updateTrackDto: CreateTrackDto): ITrack {
+  async updateTrack(id: string, updateTrackDto: CreateTrackDto): Promise<ITrack> {
     if (!validateUuid(id)) {
       throw new BadRequestException('Track Id is invalid (not uuid)');
     }
 
-    const track = this.tracks.find((track) => track.id === id);
-    if (!track) {
+    try {
+      return await this.prisma.track.update({
+        where: { id },
+        data: {
+          name: updateTrackDto.name,
+          artistId: updateTrackDto.artistId || null,
+          albumId: updateTrackDto.albumId || null,
+          duration: updateTrackDto.duration,
+        },
+      });
+    } catch {
       throw new NotFoundException('Track not found');
     }
-
-    track.name = updateTrackDto.name;
-    track.artistId = updateTrackDto.artistId || null;
-    track.albumId = updateTrackDto.albumId || null;
-    track.duration = updateTrackDto.duration;
-
-    return track;
   }
 
-  deleteTrack(id: string): void {
+  async deleteTrack(id: string): Promise<void> {
     if (!validateUuid(id)) {
       throw new BadRequestException('Track Id is invalid (not uuid)');
     }
 
-    const index = this.tracks.findIndex((track) => track.id === id);
-    if (index === -1) {
+    try {
+      await this.prisma.track.delete({ where: { id } });
+      // БД сама очистит ссылки в Favorites благодаря onDelete: SetNull/Cascade
+    } catch {
       throw new NotFoundException('Track not found');
     }
-
-    this.favoritesService.removeTrackFromFavorites(id);
-
-    this.tracks.splice(index, 1);
-  }
-
-  removeArtistReferences(artistId: string): void {
-    this.tracks.forEach((track) => {
-      if (track.artistId === artistId) {
-        track.artistId = null;
-      }
-    });
-  }
-
-  removeAlbumReferences(albumId: string): void {
-    this.tracks.forEach((track) => {
-      if (track.albumId === albumId) {
-        track.albumId = null;
-      }
-    });
-  }
-
-  exists(id: string): boolean {
-    return this.tracks.some((track) => track.id === id);
-  }
-
-  getTracksByIds(ids: string[]): ITrack[] {
-    return this.tracks.filter((track) => ids.includes(track.id));
   }
 }

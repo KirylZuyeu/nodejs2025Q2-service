@@ -14,44 +14,46 @@ export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
   @Get()
-  getAll() {
-    return this.favoritesService.getAll();
+  async getAll() {
+    return await this.favoritesService.getAll();
   }
 
   @Post('track/:id')
   @HttpCode(HttpStatus.CREATED)
-  addTrack(@Param('id') id: string) {
-    return { message: this.favoritesService.addTrack(id) };
+  async addTrack(@Param('id') id: string) {
+    const message = await this.favoritesService.addTrack(id);
+    return { message };
   }
 
   @Post('album/:id')
   @HttpCode(HttpStatus.CREATED)
-  addAlbum(@Param('id') id: string) {
-    return { message: this.favoritesService.addAlbum(id) };
+  async addAlbum(@Param('id') id: string) {
+    const message = await this.favoritesService.addAlbum(id);
+    return { message };
   }
 
   @Post('artist/:id')
   @HttpCode(HttpStatus.CREATED)
-  addArtist(@Param('id') id: string) {
-    return { message: this.favoritesService.addArtist(id) };
+  async addArtist(@Param('id') id: string) {
+    const message = await this.favoritesService.addArtist(id);
+    return { message };
   }
 
   @Delete('track/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteTrack(@Param('id') id: string) {
-    return this.favoritesService.deleteTrack(id);
+  async deleteTrack(@Param('id') id: string) {
+    return await this.favoritesService.deleteTrack(id);
   }
 
   @Delete('album/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteAlbum(@Param('id') id: string) {
-    return this.favoritesService.deleteAlbum(id);
+  async deleteAlbum(@Param('id') id: string) {
+    return await this.favoritesService.deleteAlbum(id);
   }
 
   @Delete('artist/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteArtist(@Param('id') id: string) {
-    return this.favoritesService.deleteArtist(id);
+  async deleteArtist(@Param('id') id: string) {
+    return await this.favoritesService.deleteArtist(id);
   }
-
 }
