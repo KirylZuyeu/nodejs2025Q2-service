@@ -5,12 +5,12 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -23,33 +23,33 @@ model User {
 }
 
 model Artist {
-  id     String  @id @default(uuid())
-  name   String
-  grammy Boolean
-
-  albums Album[]
-  tracks Track[]
+  id        String      @id @default(uuid())
+  name      String
+  grammy    Boolean
+  albums    Album[]
+  tracks    Track[]
+  favorites Favorites[]
 }
 
 model Album {
-  id       String  @id @default(uuid())
-  name     String
-  year     Int
-  artistId String?
-
-  tracks Track[]
-  Artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id        String      @id @default(uuid())
+  name      String
+  year      Int
+  artistId  String?
+  tracks    Track[]
+  Artist    Artist?     @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  favorites Favorites[]
 }
 
 model Track {
-  id       String  @id @default(uuid())
-  name     String
-  duration Int
-  artistId String?
-  albumId  String?
-
-  Artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  Album  Album?  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  id        String      @id @default(uuid())
+  name      String
+  duration  Int
+  artistId  String?
+  albumId   String?
+  Artist    Artist?     @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  Album     Album?      @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  favorites Favorites[]
 }
 
 model Favorites {
