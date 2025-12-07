@@ -4,58 +4,69 @@ import {
   ForbiddenException,
   BadRequestException
 } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
-import { IUser, IUserResponse } from '../../common/interfaces';
+import { PrismaService } from '../../prisma/prisma.service';
+import { IUserResponse } from '../../common/interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { validateUuid } from '../../utils/uuid-validation';
 
 @Injectable()
 export class UserService {
-  private users: IUser[] = [];
+  constructor(private prisma: PrismaService) {}
 
-  createUser(createUserDto: CreateUserDto): IUserResponse {
-    const now = Date.now();
-    const user: IUser = {
-      id: uuidv4(),
-      login: createUserDto.login,
-      password: createUserDto.password,
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    this.users.push(user);
+  async createUser(createUserDto: CreateUserDto): Promise<IUserResponse> {
+    const user = await this.prisma.user.create({
+      data: {
+        login: createUserDto.login,
+        password: createUserDto.password,
+        version: 1,
+      },
+    });
 
     const { password, ...userResponse } = user;
-    return userResponse;
+    return {
+      ...userResponse,
+      createdAt: user.createdAt.getTime(),
+      updatedAt: user.updatedAt.getTime(),
+    };
   }
 
-  getAllUsers(): IUserResponse[] {
-    return this.users.map((user) => {
+  async getAllUsers(): Promise<IUserResponse[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map((user) => {
       const { password, ...userResponse } = user;
-      return userResponse;
+      return {
+        ...userResponse,
+        createdAt: user.createdAt.getTime(),
+        updatedAt: user.updatedAt.getTime(),
+      };
     });
   }
 
-  getUserById(id: string): IUserResponse {
+  async getUserById(id: string): Promise<IUserResponse> {
     if (!validateUuid(id)) {
       throw new BadRequestException('User Id is invalid (not uuid)');
     }
-    const user = this.users.find((user) => user.id === id);
+
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     const { password, ...userResponse } = user;
-    return userResponse;
+    return {
+      ...userResponse,
+      createdAt: user.createdAt.getTime(),
+      updatedAt: user.updatedAt.getTime(),
+    };
   }
 
-  updateUser(id: string, updatePasswordDto: UpdatePasswordDto): IUserResponse {
+  async updateUser(id: string, updatePasswordDto: UpdatePasswordDto): Promise<IUserResponse> {
     if (!validateUuid(id)) {
       throw new BadRequestException('User Id is invalid (not uuid)');
     }
-    const user = this.users.find((user) => user.id === id);
+
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -64,24 +75,31 @@ export class UserService {
       throw new ForbiddenException('Old password is wrong');
     }
 
-    user.password = updatePasswordDto.newPassword;
-    user.version += 1;
-    user.updatedAt = Date.now();
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: updatePasswordDto.newPassword,
+        version: { increment: 1 },
+      },
+    });
 
-    const { password, ...userResponse } = user;
-    return userResponse;
+    const { password, ...userResponse } = updatedUser;
+    return {
+      ...userResponse,
+      createdAt: updatedUser.createdAt.getTime(),
+      updatedAt: updatedUser.updatedAt.getTime(),
+    };
   }
 
-  deleteUser(id: string): void {
+  async deleteUser(id: string): Promise<void> {
     if (!validateUuid(id)) {
       throw new BadRequestException('User Id is invalid (not uuid)');
     }
 
-    const index = this.users.findIndex((user) => user.id === id);
-    if (index === -1) {
+    try {
+      await this.prisma.user.delete({ where: { id } });
+    } catch (error) {
       throw new NotFoundException('User not found');
     }
-    this.users.splice(index, 1);
   }
-
 }

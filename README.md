@@ -1,3 +1,9 @@
+Принцип проверки приложения остался прежний за одним исключением - нам нужно поднять докер образы
+npx prisma migrate reset --force
+
+и после запуска каждого теста очищать базу данных
+npx prisma migrate reset --force
+
 # Home Library Service
 
 ## Prerequisites
